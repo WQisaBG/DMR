@@ -5,4 +5,6 @@
 thirdparty/
 build/
 CSV/
-model/
+model/nezha/scene/meshes/
+model/nezha/urdf/meshes/
+
