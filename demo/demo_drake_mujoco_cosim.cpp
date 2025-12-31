@@ -4144,42 +4144,16 @@ int main(int argc, char **argv)
         //   [11-17]: right_arm_joint1-7  <-- We control these
         //   [18-19]: head_joint1-2
         VectorXd q_start = VectorXd::Zero(20);
-
-        // Set legs to neutral standing position
-        q_start(0) = 0.0;   // leg_joint1
-        q_start(1) = 0.0;   // leg_joint2
-        q_start(2) = 0.0;   // leg_joint3
-
-        // Set waist to neutral (facing forward)
-        q_start(3) = 0.0;   // waist_joint
-
-        // Left arm: keep in neutral/retracted position
-        q_start(4) = 0.0;   // left_arm_joint1
-        q_start(5) = 0.0;   // left_arm_joint2
-        q_start(6) = 0.0;   // left_arm_joint3
-        q_start(7) = 0.0;  // left_arm_joint4
-        q_start(8) = 0.0;   // left_arm_joint5
-        q_start(9) = 0.0;   // left_arm_joint6
-        q_start(10) = 0.0;  // left_arm_joint7
-
-        // Right arm: Initial pose away from singularities for better IK convergence
-        // All-zero configuration is near singularity and prevents IK from working
-        // Using small offsets to avoid singular configuration
-        q_start(11) = 0.05;    // right_arm_joint1 (shoulder pan) - neutral
-        q_start(12) = 0.0;    // right_arm_joint2 (shoulder lift) - neutral
-        q_start(13) = 0.05;   // right_arm_joint3 (elbow) - slight bend (was 0, caused singularity)
-        q_start(14) = 0.2;    // right_arm_joint4 (wrist rotation) - neutral
-        q_start(15) = 0.1;    // right_arm_joint5 (wrist flex) - neutral
-        q_start(16) = 0.05;    // right_arm_joint6 (wrist rotation) - small offset
-        q_start(17) = 0.05;    // right_arm_joint7 (wrist flex) - neutral
-
-        // Head: neutral position
-        q_start(18) = 0.0;  // head_joint1
-        q_start(19) = 0.0;  // head_joint2
-
+        q_start.segment<7>(11) << 0.05, 0.0, 0.05, 0.2, 0.1, 0.05, 0.05;
         // Compute initial EE position using Forward Kinematics
         drake::math::RigidTransformd T_ee_start = drake_sim.ComputeEEPose(q_start);
         Eigen::Vector3d ee_start = T_ee_start.translation();   //末端初始位置
+
+        VectorXd tar_pos = VectorXd::Zero(20);
+        tar_pos.segment<7>(11) << 0.0872665, -0.0872665, 0.0, 0.0, 0.0, 0.0, 0.0;
+        // Compute initial EE position using Forward Kinematics
+        drake::math::RigidTransformd T_tar_pos = drake_sim.ComputeEEPose(tar_pos);
+        Eigen::Vector3d goal_position = T_tar_pos.translation();   //末端初始位置
 
         std::cout << "Initial EE Position (waist frame): " << ee_start.transpose() << std::endl;
         std::cout << "Configuration uses waist coordinate frame as reference" << std::endl;
@@ -4209,13 +4183,6 @@ int main(int argc, char **argv)
         {
             // ========== LINEAR TRAJECTORY ==========
             std::cout << "\n>>> Planning Linear Trajectory (Point-to-Point)" << std::endl;
-
-            // Define goal position (offset from start by 20cm in X and -20cm in Y and +50cm in Z)
-            Eigen::Vector3d goal_position = ee_start;
-            goal_position(0) += 0.2; // +20cm in X
-            goal_position(1) -= 0.2; // -20cm in Y
-            goal_position(2) += 0.2; // +20cm in Z (downward)
-
             std::cout << "  EE Start: " << ee_start.transpose() << std::endl;
             std::cout << "  EE Goal:  " << goal_position.transpose() << std::endl;
             std::cout << "  Distance: " << (goal_position - ee_start).norm() << " m" << std::endl;

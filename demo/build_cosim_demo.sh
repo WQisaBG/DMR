@@ -5,6 +5,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+BUILD_DIR="$PROJECT_DIR/build"
 
 echo "========================================"
 echo "Building Drake + MuJoCo Co-Sim Demo"
@@ -19,9 +20,15 @@ else
     echo "Warning: setup_env.sh not found. Make sure thirdparty libraries are installed."
 fi
 
-# Create build directory
-BUILD_DIR="$PROJECT_DIR/build"
-mkdir -p "$BUILD_DIR"
+# Handle build directory
+if [ ! -d "$BUILD_DIR" ]; then
+    echo "Creating build directory..."
+    mkdir -p "$BUILD_DIR"
+else
+    echo "Cleaning build directory..."
+    rm -rf "$BUILD_DIR"/*
+fi
+
 cd "$BUILD_DIR"
 
 echo ""
@@ -39,9 +46,4 @@ echo "========================================"
 echo ""
 echo "Executable: $BUILD_DIR/demo_drake_mujoco_cosim"
 echo ""
-echo "Usage:"
-echo "  $BUILD_DIR/demo_drake_mujoco_cosim [duration] [timestep]"
-echo ""
-echo "Example:"
-echo "  $BUILD_DIR/demo_drake_mujoco_cosim 1.0 0.001"
-echo "    - Run for 1.0 second with 1ms timestep"
+echo "To run the demo, use: ./run_cosim_demo.sh"
