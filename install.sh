@@ -619,25 +619,25 @@ EOF
 main(){
     log "=== 自动构建流程启动 ==="
     unset CMAKE_PREFIX_PATH LD_LIBRARY_PATH PYTHONPATH
-    # setup_dirs
-    # ensure_cmake
+    setup_dirs
+    ensure_cmake
 
 
-    # install_sys_deps
-    # install_mujoco
-    # install_drake
+    install_sys_deps
+    install_mujoco
+    install_drake
 
-    # download_eigen_latest
-    # # install_qpoases
+    download_eigen_latest
+    # install_qpoases
 
-    # install_eigenpy
+    install_eigenpy
     # install_hpp_fcl
     # install_pinocchio
     # verify_installation
-    # install_json
-    # install_imgui 
+    install_json
+    install_imgui 
     # install_topp_ra
-    # create_setup_env
+    create_setup_env
     log "=== 全部安装完成，请运行: source $THIRDPARTY_DIR/setup_env.sh"
     log "详细日志: $LOG_FILE"
 }

@@ -22,6 +22,16 @@
 #include <algorithm>
 #include <optional>
 
+// Platform-specific headers for path handling
+#if defined(__linux__)
+#include <limits.h>     // PATH_MAX
+#include <unistd.h>     // readlink
+#elif defined(__APPLE__)
+#include <limits.h>     // PATH_MAX
+#include <mach-o/dyld.h> // _NSGetExecutablePath
+#include <stdlib.h>     // realpath
+#endif
+
 // MuJoCo headers
 #include <mujoco/mujoco.h>
 #include <mujoco/mjui.h>
@@ -2322,7 +2332,21 @@ public:
         std::strftime(timestamp, sizeof(timestamp), "%Y%m%d_%H%M%S", now_tm);
 
         std::string csv_filename = "trajectory_linear_" + std::string(timestamp) + ".csv";
-        std::string csv_path = "/home/abc/RobotGrasp/DMR/CSV/" + csv_filename;
+
+        // ✅ INDUSTRIAL STANDARD: Use relative path for CSV output
+        // Check environment variable first, fallback to current directory
+        std::string csv_dir;
+        if (const char* env_csv_dir = std::getenv("DMR_CSV_DIR")) {
+            csv_dir = env_csv_dir;
+        } else {
+            csv_dir = "CSV";  // Relative to current working directory
+        }
+
+        // Create directory if it doesn't exist
+        std::string mkdir_cmd = "mkdir -p " + csv_dir;
+        system(mkdir_cmd.c_str());
+
+        std::string csv_path = csv_dir + "/" + csv_filename;
 
         std::ofstream csv_file(csv_path);
         if (csv_file.is_open())
@@ -4059,10 +4083,91 @@ int main(int argc, char **argv)
     std::cout << "========================================\n"
               << std::endl;
 
-    // Set paths to model files
-    std::string project_dir = "/home/abc/RobotGrasp/DMR";
-    std::string urdf_path = project_dir + "/model/nezha/urdf/robot_arm.urdf";
-    std::string mujoco_scene_path = project_dir + "/model/nezha/scene/scene.xml";
+    // ====================================================================
+    // ✅ INDUSTRIAL STANDARD: Flexible path resolution
+    // ====================================================================
+    // Strategy: Try multiple path sources in priority order:
+    // 1. Environment variable (DMR_PROJECT_ROOT)
+    // 2. Relative to executable (for portable deployment)
+    // 3. Relative to current working directory (for development)
+    // 4. Fallback paths (for backwards compatibility)
+
+    std::string project_dir;
+    std::string urdf_path;
+    std::string mujoco_scene_path;
+
+    // Method 1: Check environment variable
+    if (const char* env_root = std::getenv("DMR_PROJECT_ROOT")) {
+        project_dir = env_root;
+        std::cout << "[PATH] Using project root from environment: " << project_dir << std::endl;
+    }
+    // Method 2: Relative to executable (portable)
+    else {
+        // Get executable path (platform-specific)
+        std::string exe_path;
+        #ifdef __linux__
+            char exe_buf[PATH_MAX];
+            ssize_t len = readlink("/proc/self/exe", exe_buf, sizeof(exe_buf) - 1);
+            if (len != -1) {
+                exe_buf[len] = '\0';
+                exe_path = exe_buf;
+            }
+        #elif __APPLE__
+            char exe_buf[PATH_MAX];
+            uint32_t len = sizeof(exe_buf);
+            if (_NSGetExecutablePath(exe_buf, &len) == 0) {
+                exe_path = exe_buf;
+            }
+        #endif
+
+        if (!exe_path.empty()) {
+            // Remove executable name to get directory
+            size_t last_sep = exe_path.find_last_of('/');
+            if (last_sep != std::string::npos) {
+                std::string exe_dir = exe_path.substr(0, last_sep);
+                // Go up to project root (assuming executable is in build/ or demo/)
+                size_t build_pos = exe_dir.find_last_of('/');
+                if (build_pos != std::string::npos) {
+                    project_dir = exe_dir.substr(0, build_pos);
+                    std::cout << "[PATH] Detected project root from executable: " << project_dir << std::endl;
+                }
+            }
+        }
+    }
+
+    // Method 3: Fallback to relative paths from working directory
+    if (project_dir.empty()) {
+        project_dir = "..";  // Assume we're in build/ or demo/
+        std::cout << "[PATH] Using relative path from working directory" << std::endl;
+    }
+
+    // Construct model paths (relative to project root)
+    urdf_path = project_dir + "/model/nezha/urdf/robot_arm.urdf";
+    mujoco_scene_path = project_dir + "/model/nezha/scene/scene.xml";
+
+    // Verify paths exist
+    std::cout << "\n[PATH] Checking model files:" << std::endl;
+    std::cout << "  URDF:   " << urdf_path << std::endl;
+    std::cout << "  Scene:  " << mujoco_scene_path << std::endl;
+
+    std::ifstream urdf_check(urdf_path);
+    std::ifstream scene_check(mujoco_scene_path);
+
+    if (!urdf_check.good()) {
+        std::cerr << "\n[ERROR] URDF file not found: " << urdf_path << std::endl;
+        std::cerr << "[INFO] Set DMR_PROJECT_ROOT environment variable or run from project directory" << std::endl;
+        return -1;
+    }
+    urdf_check.close();
+
+    if (!scene_check.good()) {
+        std::cerr << "\n[ERROR] MuJoCo scene file not found: " << mujoco_scene_path << std::endl;
+        std::cerr << "[INFO] Set DMR_PROJECT_ROOT environment variable or run from project directory" << std::endl;
+        return -1;
+    }
+    scene_check.close();
+
+    std::cout << "  [OK] All model files found\n" << std::endl;
 
     // Parse command line arguments
     // Usage: ./demo_drake_mujoco_cosim [circular|line|waypoint|avoid] [duration] [timestep] [--drake] [--no-visual]
