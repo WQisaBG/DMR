@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1.2)
+cmake_minimum_required(VERSION 3.22)
 project(force_control)
 
 # 设置 C++ 标准和构建类型

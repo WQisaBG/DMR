@@ -2333,6 +2333,8 @@ public:
 
         std::string csv_filename = "trajectory_linear_" + std::string(timestamp) + ".csv";
 
+
+
         // ✅ INDUSTRIAL STANDARD: Use relative path for CSV output
         // Check environment variable first, fallback to current directory
         std::string csv_dir;
@@ -4078,12 +4080,7 @@ std::optional<VectorXd> DrakeSimulator::SolveGlobalIK(
 
 int main(int argc, char **argv)
 {
-    std::cout << "========================================" << std::endl;
-    std::cout << "  Drake & MuJoCo Circular Trajectory   " << std::endl;
-    std::cout << "========================================\n"
-              << std::endl;
-
-    // ====================================================================
+ // ====================================================================
     // ✅ INDUSTRIAL STANDARD: Flexible path resolution
     // ====================================================================
     // Strategy: Try multiple path sources in priority order:
@@ -4168,6 +4165,7 @@ int main(int argc, char **argv)
     scene_check.close();
 
     std::cout << "  [OK] All model files found\n" << std::endl;
+
 
     // Parse command line arguments
     // Usage: ./demo_drake_mujoco_cosim [circular|line|waypoint|avoid] [duration] [timestep] [--drake] [--no-visual]
