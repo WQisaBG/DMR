@@ -48,6 +48,7 @@
 #include <drake/planning/trajectory_optimization/direct_collocation.h>
 #include <drake/systems/primitives/trajectory_source.h>
 #include <drake/common/trajectories/piecewise_polynomial.h>
+#include <drake/common/trajectories/piecewise_quaternion.h>
 #include <drake/common/trajectories/bspline_trajectory.h>
 #include <drake/common/trajectories/bezier_curve.h>
 #include <drake/common/trajectories/composite_trajectory.h>
@@ -2374,6 +2375,323 @@ public:
     }
 
     // =================================================================
+    // NEW: Cartesian Line Planning with Full Pose Control (Position + Orientation)
+    // 同时控制末端执行器的位置和姿态 - 使用 SLERP 进行姿态插值
+    // =================================================================
+    drake::trajectories::PiecewisePolynomial<double>
+    PlanCartesianLineWithPose(
+        const VectorXd &q_start,
+        const drake::math::RigidTransformd &goal_pose,
+        double max_velocity = 0.5,              // m/s
+        double max_acceleration = 1.0,           // m/s²
+        double max_angular_velocity = 1.0,       // rad/s
+        double max_angular_acceleration = 2.0,   // rad/s²
+        bool optimize_timing = true)
+    {
+        std::cout << "\n=== Cartesian Line Planning with Full Pose Control ===" << std::endl;
+        std::cout << "Constraints:" << std::endl;
+        std::cout << "  Max Linear Velocity: " << max_velocity << " m/s" << std::endl;
+        std::cout << "  Max Linear Acceleration: " << max_acceleration << " m/s²" << std::endl;
+        std::cout << "  Max Angular Velocity: " << max_angular_velocity << " rad/s" << std::endl;
+        std::cout << "  Max Angular Acceleration: " << max_angular_acceleration << " rad/s²" << std::endl;
+
+        // Get initial EE pose
+        drake::math::RigidTransformd T_start = ComputeEEPose(q_start);
+        Eigen::Vector3d pos_start = T_start.translation();
+        drake::math::RotationMatrixd R_start = T_start.rotation();
+
+        Eigen::Vector3d pos_goal = goal_pose.translation();
+        drake::math::RotationMatrixd R_goal = goal_pose.rotation();
+
+        std::cout << "\nPath Information:" << std::endl;
+        std::cout << "  Start Position: " << pos_start.transpose() << " m" << std::endl;
+        std::cout << "  Goal Position:  " << pos_goal.transpose() << " m" << std::endl;
+
+        // Extract orientation as Roll-Pitch-Yaw for display
+        drake::math::RollPitchYawd rpy_start(R_start);
+        drake::math::RollPitchYawd rpy_goal(R_goal);
+        std::cout << "  Start Orientation (RPY): " << rpy_start.vector().transpose() << " rad" << std::endl;
+        std::cout << "  Goal Orientation (RPY):  " << rpy_goal.vector().transpose() << " rad" << std::endl;
+
+        double distance = (pos_goal - pos_start).norm();
+        std::cout << "  Linear Distance: " << distance << " m" << std::endl;
+
+        // Calculate angular distance using angle-axis representation
+        Eigen::Matrix3d R_diff_matrix = R_goal.matrix() * R_start.matrix().transpose();
+        Eigen::AngleAxisd angle_axis(R_diff_matrix);
+        double angular_distance = angle_axis.angle();
+        std::cout << "  Angular Distance: " << angular_distance << " rad (" << (angular_distance * 180.0 / M_PI) << " deg)" << std::endl;
+
+        // Generate smooth position trajectory
+        std::cout << "\nGenerating position trajectory..." << std::endl;
+        auto pos_trajectory = GenerateSmoothCartesianTrajectory(
+            pos_start, pos_goal,
+            max_velocity, max_acceleration);
+
+        double pos_duration = pos_trajectory.end_time();
+
+        // Calculate required duration for orientation based on angular velocity
+        double angular_duration = 0.0;
+        if (angular_distance > 1e-6) {
+            // Use minimum time trajectory for rotation: t = sqrt(4*theta/alpha_max)
+            // or velocity-limited: t = theta/omega_max
+            double t_vel = angular_distance / max_angular_velocity;
+            double t_acc = std::sqrt(4.0 * angular_distance / max_angular_acceleration);
+            angular_duration = std::max(t_vel, t_acc);
+        } else {
+            angular_duration = pos_duration;
+        }
+
+        // Use the longer of the two durations
+        double duration = std::max(pos_duration, angular_duration);
+        std::cout << "  Position trajectory duration: " << pos_duration << " s" << std::endl;
+        std::cout << "  Orientation trajectory duration: " << angular_duration << " s" << std::endl;
+        std::cout << "  Final trajectory duration: " << duration << " s" << std::endl;
+
+        // Create orientation trajectory using SLERP
+        std::cout << "\nGenerating orientation trajectory (SLERP)..." << std::endl;
+        std::vector<double> orientation_breaks = {0.0, duration};
+        std::vector<Eigen::Quaterniond> quaternions = {
+            R_start.ToQuaternion(),
+            R_goal.ToQuaternion()
+        };
+
+        auto orientation_trajectory = drake::trajectories::PiecewiseQuaternionSlerp<double>(
+            orientation_breaks, quaternions);
+
+        // Sample trajectory at waypoints
+        const int num_waypoints = 101;
+        std::vector<double> breaks(num_waypoints);
+        for (int i = 0; i < num_waypoints; ++i) {
+            breaks[i] = duration * i / (num_waypoints - 1);
+        }
+
+        std::cout << "\nConverting to joint space using Differential IK..." << std::endl;
+        std::cout << "  Waypoints: " << num_waypoints << std::endl;
+
+        // Set up Differential IK parameters
+        const double dt = duration / (num_waypoints - 1);
+
+        drake::multibody::DifferentialInverseKinematicsParameters dik_params(
+            plant_->num_positions(),
+            plant_->num_velocities());
+
+        dik_params.set_time_step(dt);
+        dik_params.set_nominal_joint_position(q_start);
+
+        // Joint position limits
+        VectorXd lower_pos_limits = plant_->GetPositionLowerLimits();
+        VectorXd upper_pos_limits = plant_->GetPositionUpperLimits();
+        const double margin = 0.01;
+        lower_pos_limits = lower_pos_limits.array() + margin;
+        upper_pos_limits = upper_pos_limits.array() - margin;
+        dik_params.set_joint_position_limits({lower_pos_limits, upper_pos_limits});
+
+        // Set angular velocity limit (increase for better convergence)
+        dik_params.set_end_effector_angular_speed_limit(max_angular_velocity * 2.0);
+
+        // Joint velocity limits - lock all joints EXCEPT right arm (11-17)
+        const double max_joint_velocity_ik = 3.0;  // rad/s
+        VectorXd lower_velocity_limits = VectorXd::Constant(plant_->num_positions(), -max_joint_velocity_ik);
+        VectorXd upper_velocity_limits = VectorXd::Constant(plant_->num_positions(), max_joint_velocity_ik);
+
+        for (int i = 0; i < plant_->num_positions(); ++i) {
+            if (i < 11 || i > 17) {  // Not right arm
+                lower_velocity_limits(i) = 0.0;
+                upper_velocity_limits(i) = 0.0;
+            }
+        }
+        dik_params.set_joint_velocity_limits({lower_velocity_limits, upper_velocity_limits});
+
+        // CRITICAL: Enable BOTH angular and linear velocity control
+        drake::Vector6<bool> ee_velocity_flag;
+        ee_velocity_flag << true, true, true,   // Angular velocity control (ENABLED!)
+                             true, true, true;  // Linear velocity control
+        dik_params.set_end_effector_velocity_flag(ee_velocity_flag);
+
+        // Joint centering gain
+        MatrixXd centering_gain = MatrixXd::Zero(plant_->num_positions(), plant_->num_positions());
+        for (int i = 0; i < plant_->num_positions(); ++i) {
+            if (i < 11 || i > 17) {  // Not right arm
+                centering_gain(i, i) = 100.0;  // Strong gain to lock these joints
+            } else {
+                centering_gain(i, i) = 0.01;   // Small gain for right arm flexibility
+            }
+        }
+        dik_params.set_joint_centering_gain(centering_gain);
+
+        // Get frames and context
+        const auto& ee_frame = plant_->GetFrameByName("right_tool_frame");
+        auto& plant_context = plant_->GetMyMutableContextFromRoot(
+            &simulator_->get_mutable_context());
+
+        // Track joint configurations
+        std::vector<MatrixXd> joint_samples(num_waypoints);
+        VectorXd q_current = q_start;
+        int success_count = 0;
+        int fail_count = 0;
+
+        std::cout << "\nExecuting Cartesian trajectory with full pose control:" << std::endl;
+
+        for (int i = 0; i < num_waypoints; ++i) {
+            double t = breaks[i];
+            breaks[i] = t;
+
+            // Get desired position and velocity from trajectory
+            Eigen::Vector3d desired_pos = pos_trajectory.value(t);
+            Eigen::Vector3d desired_linear_vel = pos_trajectory.derivative(1).value(t);
+
+            // Get desired orientation from SLERP trajectory
+            Eigen::Quaterniond desired_quat = orientation_trajectory.orientation(t);
+            drake::math::RotationMatrixd desired_R(desired_quat);
+
+            // Use PiecewiseQuaternionSlerp's built-in angular velocity
+            Eigen::Vector3d desired_angular_vel = orientation_trajectory.angular_velocity(t);
+
+            // Set current robot state
+            plant_->SetPositions(&plant_context, q_current);
+
+            // Compute current pose
+            drake::math::RigidTransformd T_current = ComputeEEPose(q_current);
+            Eigen::Vector3d current_pos = T_current.translation();
+            drake::math::RotationMatrixd current_R = T_current.rotation();
+
+            // Position error correction (P-controller)
+            const double kp_pos = 50.0;
+            Eigen::Vector3d pos_error = desired_pos - current_pos;
+            Eigen::Vector3d corrected_linear_vel = desired_linear_vel + kp_pos * pos_error;
+
+            // Clamp linear velocity
+            double max_ee_vel = max_velocity * 1.5;
+            if (corrected_linear_vel.norm() > max_ee_vel) {
+                corrected_linear_vel = corrected_linear_vel.normalized() * max_ee_vel;
+            }
+
+            // Orientation error correction (reduced gain for better stability)
+            const double kp_rot = 2.0;  // Reduced from 10.0 to 2.0
+            drake::math::RotationMatrixd R_error = desired_R * current_R.inverse();
+
+            // Convert rotation error to axis-angle
+            drake::math::RollPitchYawd rpy_error(R_error);
+            Eigen::Vector3d rot_error_vec = rpy_error.vector();
+
+            // For small angles, use the RPY vector directly as error
+            Eigen::Vector3d corrected_angular_vel = desired_angular_vel + kp_rot * rot_error_vec;
+
+            // Clamp angular velocity to avoid excessive corrections
+            double max_angular_vel_correction = max_angular_velocity * 2.0;  // Increased limit
+            if (corrected_angular_vel.norm() > max_angular_vel_correction) {
+                corrected_angular_vel = corrected_angular_vel.normalized() * max_angular_vel_correction;
+            }
+
+            // Create spatial velocity [angular, linear]
+            drake::Vector6<double> V_WE_desired;
+            V_WE_desired << corrected_angular_vel(0), corrected_angular_vel(1), corrected_angular_vel(2),
+                              corrected_linear_vel(0), corrected_linear_vel(1), corrected_linear_vel(2);
+
+            // Solve Differential IK
+            auto result = drake::multibody::DoDifferentialInverseKinematics(
+                *plant_, plant_context, V_WE_desired, ee_frame, dik_params);
+
+            if (result.status == drake::multibody::DifferentialInverseKinematicsStatus::kSolutionFound) {
+                VectorXd q_dot = result.joint_velocities.value();
+                VectorXd q_next = q_current + q_dot * dt;
+
+                // Enforce joint limits
+                q_next = q_next.cwiseMax(plant_->GetPositionLowerLimits())
+                                 .cwiseMin(plant_->GetPositionUpperLimits());
+
+                // Collision detection
+                CollisionResult col_result = CheckCollisionDetailed(q_next);
+
+                if (col_result.has_collision) {
+                    if (i == 0) {
+                        joint_samples[i] = q_start;
+                    } else {
+                        joint_samples[i] = q_current;
+                    }
+                    if (i < 5) {
+                        std::cout << "  [COLLISION] Waypoint " << i << ": "
+                                  << col_result.warning_message << std::endl;
+                    }
+                } else {
+                    q_current = q_next;
+                    joint_samples[i] = q_current;
+                    success_count++;
+                }
+            } else {
+                if (i == 0) {
+                    joint_samples[i] = q_start;
+                } else {
+                    joint_samples[i] = q_current;
+                }
+                fail_count++;
+                if (i < 5) {
+                    std::cout << "  [DIK FAILED] Waypoint " << i << std::endl;
+                }
+            }
+
+            // Progress update
+            if (i % 10 == 0 || i == num_waypoints - 1) {
+                Eigen::Vector3d actual_pos = ComputeEEPose(q_current).translation();
+                double pos_tracking_error = (actual_pos - desired_pos).norm();
+
+                drake::math::RotationMatrixd actual_R = ComputeEEPose(q_current).rotation();
+                // Calculate rotation error using angle-axis
+                Eigen::Matrix3d R_diff = desired_R.matrix() * actual_R.matrix().transpose();
+                Eigen::AngleAxisd angle_axis(R_diff);
+                double rot_tracking_error = angle_axis.angle();
+
+                std::cout << "  Waypoint " << i << "/" << num_waypoints
+                          << " | t=" << std::fixed << std::setprecision(3) << t << " s"
+                          << " | Pos Error: " << std::scientific << pos_tracking_error << " m"
+                          << " | Rot Error: " << (rot_tracking_error * 180.0 / M_PI) << " deg"
+                          << std::endl;
+            }
+        }
+
+        // Force non-right-arm joints to stay at initial values
+        std::cout << "\n[SAFETY CHECK] Forcing non-right-arm joints to initial positions..." << std::endl;
+        for (int i = 0; i < num_waypoints; ++i) {
+            for (int j = 0; j < plant_->num_positions(); ++j) {
+                if (j < 11 || j > 17) {  // Non-right-arm joints
+                    joint_samples[i](j) = q_start(j);
+                }
+            }
+        }
+
+        std::cout << "\nResults:" << std::endl;
+        std::cout << "  Success: " << success_count << "/" << num_waypoints
+                  << " (" << (100.0 * success_count / num_waypoints) << "%)" << std::endl;
+        std::cout << "  Failed:  " << fail_count << "/" << num_waypoints << std::endl;
+
+        // Compute velocity derivatives for smooth CubicHermite interpolation
+        std::vector<MatrixXd> derivative_samples(num_waypoints);
+        for (int i = 0; i < num_waypoints; ++i) {
+            if (i == 0) {
+                derivative_samples[i] = (joint_samples[1] - joint_samples[0]) /
+                                       (breaks[1] - breaks[0]);
+            } else if (i == num_waypoints - 1) {
+                derivative_samples[i] = (joint_samples[i] - joint_samples[i - 1]) /
+                                       (breaks[i] - breaks[i - 1]);
+            } else {
+                derivative_samples[i] = (joint_samples[i + 1] - joint_samples[i - 1]) /
+                                       (breaks[i + 1] - breaks[i - 1]);
+            }
+            derivative_samples[i] *= 0.5;
+        }
+
+        auto final_trajectory = drake::trajectories::PiecewisePolynomial<double>::CubicHermite(
+            breaks, joint_samples, derivative_samples);
+
+        std::cout << "\nFull-pose trajectory generated successfully!" << std::endl;
+        std::cout << "  Segments: " << final_trajectory.get_number_of_segments() << std::endl;
+        std::cout << "  Duration: " << duration << " s" << std::endl;
+
+        return final_trajectory;
+    }
+
+    // =================================================================
     // LEGACY: Original time-based Cartesian line planning (kept for comparison)
     // =================================================================
     drake::trajectories::PiecewisePolynomial<double> PlanCartesianLine(
@@ -4083,7 +4401,7 @@ int main(int argc, char **argv)
     if (argc > arg_idx)
     {
         std::string arg1 = argv[arg_idx];
-        if (arg1 == "circular" || arg1 == "circle" || arg1 == "line" || arg1 == "waypoint" || arg1 == "waypoints" || arg1 == "avoid" || arg1 == "obstacle")
+        if (arg1 == "circular" || arg1 == "circle" || arg1 == "line" || arg1 == "pose" || arg1 == "waypoint" || arg1 == "waypoints" || arg1 == "avoid" || arg1 == "obstacle")
         {
             trajectory_type = arg1;
             arg_idx++;
@@ -4144,16 +4462,42 @@ int main(int argc, char **argv)
         //   [11-17]: right_arm_joint1-7  <-- We control these
         //   [18-19]: head_joint1-2
         VectorXd q_start = VectorXd::Zero(20);
-        q_start.segment<7>(11) << 0.05, 0.0, 0.05, 0.2, 0.1, 0.05, 0.05;
+
+        // Set legs to neutral standing position
+        q_start(0) = 0.0;   // leg_joint1
+        q_start(1) = 0.0;   // leg_joint2
+        q_start(2) = 0.0;   // leg_joint3
+
+        // Set waist to neutral (facing forward)
+        q_start(3) = 0.0;   // waist_joint
+
+        // Left arm: keep in neutral/retracted position
+        q_start(4) = 0.0;   // left_arm_joint1
+        q_start(5) = 0.0;   // left_arm_joint2
+        q_start(6) = 0.0;   // left_arm_joint3
+        q_start(7) = 0.0;  // left_arm_joint4
+        q_start(8) = 0.0;   // left_arm_joint5
+        q_start(9) = 0.0;   // left_arm_joint6
+        q_start(10) = 0.0;  // left_arm_joint7
+
+        // Right arm: Initial pose away from singularities for better IK convergence
+        // All-zero configuration is near singularity and prevents IK from working
+        // Using small offsets to avoid singular configuration
+        q_start(11) = 0.05;    // right_arm_joint1 (shoulder pan) - neutral
+        q_start(12) = 0.0;    // right_arm_joint2 (shoulder lift) - neutral
+        q_start(13) = 0.05;   // right_arm_joint3 (elbow) - slight bend (was 0, caused singularity)
+        q_start(14) = 0.2;    // right_arm_joint4 (wrist rotation) - neutral
+        q_start(15) = 0.1;    // right_arm_joint5 (wrist flex) - neutral
+        q_start(16) = 0.05;    // right_arm_joint6 (wrist rotation) - small offset
+        q_start(17) = 0.05;    // right_arm_joint7 (wrist flex) - neutral
+
+        // Head: neutral position
+        q_start(18) = 0.0;  // head_joint1
+        q_start(19) = 0.0;  // head_joint2
+
         // Compute initial EE position using Forward Kinematics
         drake::math::RigidTransformd T_ee_start = drake_sim.ComputeEEPose(q_start);
         Eigen::Vector3d ee_start = T_ee_start.translation();   //末端初始位置
-
-        VectorXd tar_pos = VectorXd::Zero(20);
-        tar_pos.segment<7>(11) << 0.0872665, -0.0872665, 0.0, 0.0, 0.0, 0.0, 0.0;
-        // Compute initial EE position using Forward Kinematics
-        drake::math::RigidTransformd T_tar_pos = drake_sim.ComputeEEPose(tar_pos);
-        Eigen::Vector3d goal_position = T_tar_pos.translation();   //末端初始位置
 
         std::cout << "Initial EE Position (waist frame): " << ee_start.transpose() << std::endl;
         std::cout << "Configuration uses waist coordinate frame as reference" << std::endl;
@@ -4183,6 +4527,13 @@ int main(int argc, char **argv)
         {
             // ========== LINEAR TRAJECTORY ==========
             std::cout << "\n>>> Planning Linear Trajectory (Point-to-Point)" << std::endl;
+
+            // Define goal position (offset from start by 20cm in X and -20cm in Y and +50cm in Z)
+            Eigen::Vector3d goal_position = ee_start;
+            goal_position(0) += 0.2; // +20cm in X
+            goal_position(1) -= 0.2; // -20cm in Y
+            goal_position(2) += 0.2; // +20cm in Z (downward)
+
             std::cout << "  EE Start: " << ee_start.transpose() << std::endl;
             std::cout << "  EE Goal:  " << goal_position.transpose() << std::endl;
             std::cout << "  Distance: " << (goal_position - ee_start).norm() << " m" << std::endl;
@@ -4195,7 +4546,60 @@ int main(int argc, char **argv)
                 0.5,      // max_velocity = 0.5 m/s
                 1.0,      // max_acceleration = 1.0 m/s²
                 5.0,      // max_jerk = 5.0 m/s³
-                true);    // enable optimal timing planning   
+                true);    // enable optimal timing planning
+        }
+        else if (trajectory_type == "pose")
+        {
+            // ========== LINEAR TRAJECTORY WITH FULL POSE CONTROL ==========
+            std::cout << "\n>>> Planning Linear Trajectory with Full Pose Control (Position + Orientation)" << std::endl;
+
+            // Define goal position (offset from start by 20cm in X and -20cm in Y and +20cm in Z)
+            Eigen::Vector3d goal_position = ee_start;
+            goal_position(0) += 0.2; // +20cm in X
+            goal_position(1) -= 0.2; // -20cm in Y
+            goal_position(2) += 0.2; // +20cm in Z
+
+            // Define goal orientation (small rotation to demonstrate pose control)
+            // Use current orientation + small offset to avoid large angular motions
+            drake::math::RollPitchYawd start_rpy_small(T_ee_start.rotation());
+            drake::math::RollPitchYawd goal_rpy(
+                start_rpy_small.roll_angle(),      // Keep same roll
+                start_rpy_small.pitch_angle(),     // Keep same pitch
+                start_rpy_small.yaw_angle() + M_PI / 8.0  // +22.5 degrees yaw
+            );
+            drake::math::RotationMatrixd goal_rotation(goal_rpy);
+
+            // Create goal pose
+            drake::math::RigidTransformd goal_pose(goal_rotation, goal_position);
+
+            std::cout << "  EE Start Position: " << ee_start.transpose() << " m" << std::endl;
+            std::cout << "  EE Goal Position:  " << goal_position.transpose() << " m" << std::endl;
+
+            drake::math::RollPitchYawd start_rpy(T_ee_start.rotation());
+            std::cout << "  EE Start Orientation (RPY): " << start_rpy.vector().transpose() << " rad" << std::endl;
+            std::cout << "  EE Goal Orientation (RPY):  " << goal_rpy.vector().transpose() << " rad" << std::endl;
+
+            std::cout << "  Linear Distance: " << (goal_position - ee_start).norm() << " m" << std::endl;
+            // Calculate angular distance using angle-axis
+            Eigen::Matrix3d R_diff_mat = T_ee_start.rotation().matrix() * goal_rotation.matrix().transpose();
+            Eigen::AngleAxisd angle_axis_diff(R_diff_mat);
+            double angular_distance_main = angle_axis_diff.angle();
+            std::cout << "  Angular Distance: " << angular_distance_main << " rad ("
+                      << (angular_distance_main * 180.0 / M_PI) << " deg)" << std::endl;
+
+            // Use the new full-pose planning function
+            // This controls BOTH position and orientation
+            planned_trajectory = drake_sim.PlanCartesianLineWithPose(
+                q_start,
+                goal_pose,
+                0.5,      // max_velocity = 0.5 m/s
+                1.0,      // max_acceleration = 1.0 m/s²
+                1.0,      // max_angular_velocity = 1.0 rad/s
+                2.0,      // max_angular_acceleration = 2.0 rad/s²
+                true);    // enable optimal timing planning
+
+            std::cout << "\n[SUCCESS] Full-pose trajectory generated!" << std::endl;
+            std::cout << "The robot will now move to the target position WHILE rotating to the target orientation." << std::endl;
         }
         else if (trajectory_type == "waypoint" || trajectory_type == "waypoints")
         {
