@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1.2)
+cmake_minimum_required(VERSION 3.22)
 project(force_control)
 
 # 设置 C++ 标准和构建类型
@@ -165,8 +165,6 @@ add_executable(demo_drake_mujoco_cosim ${CMAKE_SOURCE_DIR}/demo/demo_drake_mujoc
 target_compile_features(demo_drake_mujoco_cosim PRIVATE cxx_std_20)
 
 # 设置包含目录
-message(STATUS "MUJOCO_PATH: ${MUJOCO_PATH}")
-message(STATUS "MUJOCO_INCLUDE: ${MUJOCO_PATH}/include")
 target_include_directories(demo_drake_mujoco_cosim PRIVATE
     ${MUJOCO_PATH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/install/include

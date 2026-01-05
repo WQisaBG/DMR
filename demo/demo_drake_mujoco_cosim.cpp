@@ -5827,8 +5827,9 @@ int main(int argc, char **argv)
         else if (trajectory_type == "MoveC")
         {
 
-           
-            std::cout << "\n>>> Planning Circular Trajectory " << std::endl;
+            // ========== CIRCULAR TRAJECTORY: YZ PLANE ==========
+            // Strategy: Move to starting position on circle, then draw circle in YZ plane
+            std::cout << "\n>>> Planning Circular Trajectory (YZ Plane)" << std::endl;
 
             // Get EE position in waist frame
             Eigen::Vector3d ee_start_waist = ee_start; // Already computed as T_ee_start.translation()
@@ -5934,6 +5935,7 @@ int main(int argc, char **argv)
             std::cout << "  Goal point:  " << goal_point.transpose() << " m (back to start for full circle)" << std::endl;
 
             // Define orientations for via and goal poses
+            // For a welding/cutting scenario, maintain tool orientation relative to path
             // Use same orientation as start (can be customized for specific tasks)
             drake::math::RigidTransformd via_pose(T_ee_start.rotation(), via_point);
             drake::math::RigidTransformd goal_pose(T_ee_start.rotation(), goal_point);

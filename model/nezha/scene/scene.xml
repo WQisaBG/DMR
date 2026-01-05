@@ -30,20 +30,20 @@
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" condim="6" friction="1.5 0.1 0.01"/>
 
     <!-- 桌子与其腿 -->
-    <!-- <body name="table" pos="0.7 0 0.3">
+    <body name="table" pos="0.7 0 0.3">
       <geom name="table_top" type="box" size="0.4 0.3 0.05" pos="0 0 0.32" material="table_wood" condim="6" friction="2.5 0.3 0.02"/>
       <geom name="table_leg1" type="box" size="0.03 0.03 0.3" pos="-0.37 0.27 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
       <geom name="table_leg2" type="box" size="0.03 0.03 0.3" pos="-0.37 -0.27 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
       <geom name="table_leg3" type="box" size="0.03 0.03 0.3" pos="0.37 0.27 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
       <geom name="table_leg4" type="box" size="0.03 0.03 0.3" pos="0.37 -0.27 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
-    </body> -->
+    </body>
 
-    <!-- <body name="block" pos="0.9 0.01 0.87">
+    <body name="block" pos="0.9 0.01 0.87">
       <joint name="block_joint" type="free"/>
       <geom name="block_geom" type="cylinder" size="0.025 0.25" material="block_red"
       mass="0.2" condim="6" friction="2.0 1.5 0.8" solref="0.01 2" solimp="0.9 0.99 0.001" contype="1" conaffinity="2"
       margin="0.0002" gap="0.00001"/>
-    </body> -->
+    </body>
   </worldbody>
 
 </mujoco>
