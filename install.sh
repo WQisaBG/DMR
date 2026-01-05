@@ -610,7 +610,7 @@ export PKG_CONFIG_PATH="\$INSTALL_DIR/lib/pkgconfig:\$PKG_CONFIG_PATH"
 export CPLUS_INCLUDE_PATH="\$INSTALL_DIR/include:\$CPLUS_INCLUDE_PATH"
 
 # 提示环境已设置
-[ -z "\${PINOCCHIO_SETUP_ENV:-}" ] && export PINOCCHIO_SETUP_ENV=1 && echo "Pinocchio 环境变量已设置: \$INSTALL_DIR"
+[ -z "\${PINOCCHIO_SETUP_ENV:-}" ] && export PINOCCHIO_SETUP_ENV=1 && echo "Drake+MuJoCo 环境变量已设置: \$INSTALL_DIR"
 EOF
     chmod +x "$THIRDPARTY_DIR/setup_env.sh"
     log "✓ 环境设置脚本创建成功"
