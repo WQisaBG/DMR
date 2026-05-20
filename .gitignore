@@ -8,5 +8,6 @@ CSV/
 model/V3/scene/meshes/
 model/V3/urdf/meshes/
 log/
-doc/
+docs/
+scripts/
 
