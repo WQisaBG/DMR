@@ -1,0 +1,71 @@
+<mujoco model="mjmodel scene_obstacle_test">
+  <include file="nezha.xml"/>
+
+  <statistic center="0.2 0 0.2" extent="1.0"/>
+
+  <!-- 优化物理参数与精度，增大margin/gap -->
+  <option timestep="0.0005" tolerance="1e-12" solver="Newton" iterations="500"
+          ccd_iterations="200" ccd_tolerance="1e-12" jacobian="dense" cone="elliptic" gravity="0 0 -9.81" impratio="10">
+    <flag contact="enable" energy="enable" multiccd="enable" island="enable"/>
+  </option>
+
+  <size njmax="500" nconmax="2000"/>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+    <material name="table_wood" rgba="0.65 0.5 0.3 1" specular="0.3" shininess="0.5"/>
+    <material name="block_red" rgba="0.8 0.2 0.2 1" specular="0.5" shininess="0.8"/>
+    <material name="obstacle_yellow" rgba="0.9 0.8 0.2 1" specular="0.5" shininess="0.7"/>
+    <material name="obstacle_blue" rgba="0.2 0.4 0.8 1" specular="0.5" shininess="0.7"/>
+  </asset>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.1 0.1 0.1" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="120" elevation="-20"/>
+  </visual>
+
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" condim="6" friction="1.5 0.1 0.01"/>
+
+    <!-- 桌子 - 移动到更靠近机械臂工作空间的位置 -->
+    <body name="table" pos="0.5 0 0.3">
+      <geom name="table_top" type="box" size="0.35 0.25 0.05" pos="0 0 0.32" material="table_wood" condim="6" friction="2.5 0.3 0.02"/>
+      <geom name="table_leg1" type="box" size="0.03 0.03 0.3" pos="-0.32 0.22 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
+      <geom name="table_leg2" type="box" size="0.03 0.03 0.3" pos="-0.32 -0.22 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
+      <geom name="table_leg3" type="box" size="0.03 0.03 0.3" pos="0.32 0.22 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
+      <geom name="table_leg4" type="box" size="0.03 0.03 0.3" pos="0.32 -0.22 0" material="table_wood" condim="6" friction="1.5 0.1 0.01"/>
+    </body>
+
+    <!-- 桌面上的红色圆柱体（目标物体） -->
+    <!-- <body name="block" pos="0.65 0.0 0.82">
+      <joint name="block_joint" type="free"/>
+      <geom name="block_geom" type="cylinder" size="0.025 0.25" material="block_red"
+      mass="0.2" condim="6" friction="2.0 1.5 0.8" solref="0.01 2" solimp="0.9 0.99 0.001" contype="1" conaffinity="2"
+      margin="0.0002" gap="0.00001"/>
+    </body> -->
+
+    <!-- 障碍物1：黄色长方体 - 在机械臂路径中间 -->
+    <!-- <body name="obstacle_barrier" pos="0.6 0.0 0.65">
+      <geom name="obstacle_barrier_geom" type="box" size="0.15 0.05 0.08" material="obstacle_yellow"
+      condim="6" friction="1.5 0.1 0.01" margin="0.001" gap="0.0001"/>
+    </body> -->
+
+    <!-- 障碍物2：蓝色球体 - 在另一侧 -->
+    <!-- <body name="obstacle_sphere" pos="0.55 0.15 0.7">
+      <geom name="obstacle_sphere_geom" type="sphere" size="0.08" material="obstacle_blue"
+      condim="6" friction="1.5 0.1 0.01" margin="0.001" gap="0.0001"/>
+    </body> -->
+
+    <!-- 障碍物3：黄色圆柱体 - 靠近桌子边缘 -->
+    <!-- <body name="obstacle_cylinder" pos="0.7 -0.12 0.75">
+      <geom name="obstacle_cylinder_geom" type="cylinder" size="0.04 0.12" material="obstacle_yellow"
+      condim="6" friction="1.5 0.1 0.01" margin="0.001" gap="0.0001"/>
+    </body> -->
+
+  </worldbody>
+
+</mujoco>

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <mujoco model="nezha">
-  <compiler angle="radian" meshdir="meshes/visual/"/>
+  <compiler angle="radian" meshdir="meshes/collision/"/>
 
   <default>
     <joint armature="0.5" damping="10" stiffness="20"/>
@@ -8,6 +8,7 @@
   </default>
 
   <asset>
+    <!-- Visual meshes -->
     <mesh name="base_link" file="base_link.obj"/>
     <mesh name="leg_link1" content_type="model/obj" file="leg_link1.obj"/>
     <mesh name="leg_link2" content_type="model/obj" file="leg_link2.obj"/>
@@ -92,7 +93,7 @@
                           <inertial pos="-0.00771025 -0.00243964 0.21556" quat="0.888219 0.00444899 0.104013 0.447469" mass="0.855736" diaginertia="0.00490971 0.00419969 0.00110107"/>
                           <joint name="left_arm_joint7" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="1.5" frictionloss="0.2" actuatorfrcrange="-100 100"/>
                           <geom pos="0 0 0" quat="0.707105 0 0 -0.707108" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.68627 0.68627 0.68627 1" mesh="left_arm_link7"/>
-                          <geom type="mesh" rgba="0.68627 0.68627 0.68627 1" mesh="left_arm_link7"/>
+                          <geom pos="0 0 0" quat="0.707105 0 0 -0.707108" type="mesh" rgba="0.68627 0.68627 0.68627 1" mesh="left_arm_link7"/>
                           <!-- Left tool frame - positioned at actual physical mesh tip (0.382m) -->
                           <body name="left_tool_frame" pos="0 0 0.382">
                             <inertial pos="0 0 0" mass="0.001" diaginertia="1e-6 1e-6 1e-6"/>
@@ -138,7 +139,7 @@
                           <inertial pos="0.00771025 0.00243964 0.21556" quat="0.888219 -0.00444899 -0.104013 0.447469" mass="0.855736" diaginertia="0.00490971 0.00419969 0.00110107"/>
                           <joint name="right_arm_joint7" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="1.5" frictionloss="0.2" actuatorfrcrange="-100 100"/>
                           <geom pos="0 0 0" quat="0.707105 0 0 -0.707108" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.68627 0.68627 0.68627 1" mesh="right_arm_link7"/>
-                          <geom type="mesh" rgba="0.68627 0.68627 0.68627 1" mesh="right_arm_link7"/>
+                          <geom pos="0 0 0" quat="0.707105 0 0 -0.707108" type="mesh" rgba="0.68627 0.68627 0.68627 1" mesh="right_arm_link7"/>
                           <body name="right_tool_frame" pos="0 0 0.382">
                             <inertial pos="0 0 0" mass="0.001" diaginertia="1e-6 1e-6 1e-6"/>
                           </body>

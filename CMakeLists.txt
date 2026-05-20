@@ -29,7 +29,7 @@ find_package(pinocchio REQUIRED)
 find_package(eigenpy REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(glfw3 REQUIRED)
-# find_package(qpOASES REQUIRED)
+find_package(qpOASES REQUIRED)
 find_package(OpenGL REQUIRED) # 查找 OpenGL
 # find_package(hpp-fcl REQUIRED)
 
@@ -159,7 +159,9 @@ find_package(Drake REQUIRED CONFIG
 message(STATUS "Found Drake: ${DRAKE_DIR}")
 
 # 创建 Drake + MuJoCo 联合仿真可执行文件
-add_executable(demo_drake_mujoco_cosim ${CMAKE_SOURCE_DIR}/demo/demo_drake_mujoco_cosim.cpp)
+add_executable(demo_drake_mujoco_cosim
+    ${CMAKE_SOURCE_DIR}/demo/demo_drake_mujoco_cosim.cpp
+)
 
 # 设置 C++20 标准 (Drake 要求)
 target_compile_features(demo_drake_mujoco_cosim PRIVATE cxx_std_20)
@@ -168,12 +170,14 @@ target_compile_features(demo_drake_mujoco_cosim PRIVATE cxx_std_20)
 target_include_directories(demo_drake_mujoco_cosim PRIVATE
     ${MUJOCO_PATH}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/install/include
+    ${CMAKE_SOURCE_DIR}/demo  # For qp_trajectory_optimizer.h
 )
 
 # 链接库 (注意: 使用小写 drake::drake)
 target_link_libraries(demo_drake_mujoco_cosim PRIVATE
     drake::drake
     ${MUJOCO_LIBRARY}
+    ${qpOASES_LIBRARY}
     glfw
     OpenGL::GL
     GL

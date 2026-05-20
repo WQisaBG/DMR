@@ -54,11 +54,13 @@ install_sys_deps(){
     sudo apt-get update || error "APT 缓存更新失败"
     log "安装依赖..."
     pkgs=(build-essential git pkg-config wget curl python3 python3-dev python3-pip libssl-dev doxygen graphviz)
-    devlibs=(libeigen3-dev libboost-system-dev libboost-filesystem-dev libboost-thread-dev liburdfdom-dev liburdfdom-headers-dev libassimp-dev libccd-dev liboctomap-dev libqhull-dev libtinyxml2-dev libltdl-dev libopenblas-dev libsuitesparse-dev freeglut3-dev)
-    sudo apt-get install -y "${pkgs[@]}" "${devlibs[@]}" || error "系统依赖安装失败"
+    devlibs=(libeigen3-dev libboost-system-dev libboost-filesystem-dev libboost-thread-dev liburdfdom-dev libassimp-dev libccd-dev liboctomap-dev libqhull-dev libtinyxml2-dev libltdl-dev libopenblas-dev libsuitesparse-dev freeglut3-dev)
+    # IPOPT dependencies for non-convex optimization (GCS with Bézier curves)
+    ipopt_deps=(coinor-libcoinutils-dev coinor-libosi-dev coinor-libclp-dev coinor-libcgl-dev coinor-libipopt-dev)
+    sudo apt-get install -y "${pkgs[@]}" "${devlibs[@]}" "${ipopt_deps[@]}" || error "系统依赖安装失败"
     python3 -m pip install --upgrade pip
     python3 -m pip install --upgrade numpy matplotlib imageio pyglet lxml
-    log "✓ 系统依赖完成"
+    log "✓ 系统依赖完成 (含IPOPT)"
 }
 
 # ensure_cmake(){
@@ -304,7 +306,7 @@ install_drake() {
     local cmake_cmd=$(which cmake)
     local python_exec=$(which python3)
 
-    log "=> 配置 CMake (MuJoCo 后端)..."
+    log "=> 配置 CMake (MuJoCo 后端 + IPOPT 求解器)..."
     "$cmake_cmd" .. \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX="$drake_install_dir" \
@@ -313,6 +315,7 @@ install_drake() {
         -DWITH_MOSEK=OFF \
         -DWITH_GUROBI=OFF \
         -DWITH_SNOPT=OFF \
+        -DWITH_IPOPT=ON \
         -DPython_EXECUTABLE="$python_exec" \
         -DCMAKE_VERBOSE_MAKEFILE=ON || error "Drake CMake 配置失败"
 
@@ -618,24 +621,24 @@ EOF
 
 main(){
     log "=== 自动构建流程启动 ==="
-    unset CMAKE_PREFIX_PATH LD_LIBRARY_PATH PYTHONPATH
+    # unset CMAKE_PREFIX_PATH LD_LIBRARY_PATH PYTHONPATH
     setup_dirs
     ensure_cmake
 
 
     install_sys_deps
-    install_mujoco
+    # install_mujoco
     install_drake
 
-    download_eigen_latest
+    # download_eigen_latest
     # install_qpoases
 
-    install_eigenpy
+    # install_eigenpy
     # install_hpp_fcl
     # install_pinocchio
     # verify_installation
-    install_json
-    install_imgui 
+    # install_json
+    # install_imgui 
     # install_topp_ra
     create_setup_env
     log "=== 全部安装完成，请运行: source $THIRDPARTY_DIR/setup_env.sh"

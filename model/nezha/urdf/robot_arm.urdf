@@ -511,8 +511,8 @@ Stephen Brawner (brawner@gmail.com)
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-2.0"
-      upper="2.0"
+      lower="-3.14"
+      upper="3.14"
       effort="100"
       velocity="8" />
   </joint>
@@ -627,8 +627,8 @@ Stephen Brawner (brawner@gmail.com)
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-2.0"
-      upper="2.0"
+      lower="-3.14"
+      upper="3.14"
       effort="100"
       velocity="8" />
   </joint>
@@ -665,7 +665,7 @@ Stephen Brawner (brawner@gmail.com)
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 0 -1.5708" />
       <geometry>
         <mesh
           filename="./meshes/collision/left_arm_link7.obj" />
@@ -917,8 +917,8 @@ Stephen Brawner (brawner@gmail.com)
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-2.0"
-      upper="2.0"
+      lower="-3.14"
+      upper="3.14"
       effort="0"
       velocity="0" />
   </joint>
@@ -1033,8 +1033,8 @@ Stephen Brawner (brawner@gmail.com)
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-2.0"
-      upper="2.0"
+      lower="-3.14"
+      upper="3.14"
       effort="0"
       velocity="0" />
   </joint>
@@ -1071,7 +1071,7 @@ Stephen Brawner (brawner@gmail.com)
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 0 -1.5708" />
       <geometry>
         <mesh
           filename="./meshes/collision/right_arm_link7.obj" />
