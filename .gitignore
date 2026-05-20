@@ -5,8 +5,7 @@
 thirdparty/
 build/
 CSV/
-model/V3/scene/meshes/
-model/V3/urdf/meshes/
+model/
 log/
 docs/
 scripts/
