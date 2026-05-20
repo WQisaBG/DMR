@@ -239,12 +239,14 @@ import trimesh
 import argparse
 
 
-def convert_stl_to_obj(directory):
+def convert_stl_to_obj(directory, max_faces=200000):
     """
     Finds all STL files in the given directory and subdirectories, and converts each to an OBJ file.
+    Meshes exceeding max_faces will be simplified.
 
     Args:
         directory (str): The path to the directory to search.
+        max_faces (int): Maximum number of faces allowed.
     """
     for root, _, files in os.walk(directory):
         for file in files:
@@ -257,6 +259,13 @@ def convert_stl_to_obj(directory):
                 try:
                     # Load the STL file
                     mesh = trimesh.load(stl_path)
+
+                    # Simplify if face count exceeds limit
+                    if hasattr(mesh, 'faces') and len(mesh.faces) > max_faces:
+                        original_faces = len(mesh.faces)
+                        target_reduction = 1.0 - (max_faces / original_faces)
+                        mesh = mesh.simplify_quadric_decimation(target_reduction)
+                        print(f"Simplified: {original_faces} -> {len(mesh.faces)} faces")
 
                     # Export the mesh as OBJ
                     mesh.export(obj_path)

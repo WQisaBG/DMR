@@ -25,7 +25,7 @@ set(MUJOCO_PATH "${CMAKE_SOURCE_DIR}/thirdparty/install/mujoco")
 # 查找依赖包
 set(Python_ADDITIONAL_VERSIONS 3.10)
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
-find_package(pinocchio REQUIRED)
+# find_package(pinocchio REQUIRED)
 find_package(eigenpy REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -174,10 +174,10 @@ target_include_directories(demo_drake_mujoco_cosim PRIVATE
 )
 
 # 链接库 (注意: 使用小写 drake::drake)
+# 注意: 不要链接 qpOASES，其自定义 BLAS dgemm_ 会覆盖 Drake IPOPT 的 BLAS 导致段错误
 target_link_libraries(demo_drake_mujoco_cosim PRIVATE
     drake::drake
     ${MUJOCO_LIBRARY}
-    ${qpOASES_LIBRARY}
     glfw
     OpenGL::GL
     GL

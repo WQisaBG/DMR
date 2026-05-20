@@ -1,0 +1,200 @@
+<mujoco model="RobotV3">
+  <compiler angle="radian" meshdir="meshes/"/>
+
+  <asset>
+    <mesh name="agv_link_visual" content_type="model/obj" file="visual/agv_link.obj"/>
+    <mesh name="agv_link_collision" content_type="model/obj" file="collision/agv_link.obj"/>
+    <mesh name="lumber_link1_visual" content_type="model/obj" file="visual/lumber_link1.obj"/>
+    <mesh name="lumber_link1_collision" content_type="model/obj" file="collision/lumber_link1.obj"/>
+    <mesh name="lumber_link2_visual" content_type="model/obj" file="visual/lumber_link2.obj"/>
+    <mesh name="lumber_link2_collision" content_type="model/obj" file="collision/lumber_link2.obj"/>
+    <mesh name="lumber_link3_visual" content_type="model/obj" file="visual/lumber_link3.obj"/>
+    <mesh name="lumber_link3_collision" content_type="model/obj" file="collision/lumber_link3.obj"/>
+    <mesh name="head_link1_visual" content_type="model/obj" file="visual/head_link1.obj"/>
+    <mesh name="head_link1_collision" content_type="model/obj" file="collision/head_link1.obj"/>
+    <mesh name="head_link2_visual" content_type="model/obj" file="visual/head_link2.obj"/>
+    <mesh name="head_link2_collision" content_type="model/obj" file="collision/head_link2.obj"/>
+    <mesh name="left_arm_link1_visual" content_type="model/obj" file="visual/left_arm_link1.obj"/>
+    <mesh name="left_arm_link1_collision" content_type="model/obj" file="collision/left_arm_link1.obj"/>
+    <mesh name="left_arm_link2_visual" content_type="model/obj" file="visual/left_arm_link2.obj"/>
+    <mesh name="left_arm_link2_collision" content_type="model/obj" file="collision/left_arm_link2.obj"/>
+    <mesh name="left_arm_link3_visual" content_type="model/obj" file="visual/left_arm_link3.obj"/>
+    <mesh name="left_arm_link3_collision" content_type="model/obj" file="collision/left_arm_link3.obj"/>
+    <mesh name="left_arm_link4_visual" content_type="model/obj" file="visual/left_arm_link4.obj"/>
+    <mesh name="left_arm_link4_collision" content_type="model/obj" file="collision/left_arm_link4.obj"/>
+    <mesh name="left_arm_link5_visual" content_type="model/obj" file="visual/left_arm_link5.obj"/>
+    <mesh name="left_arm_link5_collision" content_type="model/obj" file="collision/left_arm_link5.obj"/>
+    <mesh name="left_arm_link6_visual" content_type="model/obj" file="visual/left_arm_link6.obj"/>
+    <mesh name="left_arm_link6_collision" content_type="model/obj" file="collision/left_arm_link6.obj"/>
+    <mesh name="left_arm_link7_visual" content_type="model/obj" file="visual/left_arm_link7.obj"/>
+    <mesh name="left_arm_link7_collision" content_type="model/obj" file="collision/left_arm_link7.obj"/>
+    <mesh name="right_arm_link1_visual" content_type="model/obj" file="visual/right_arm_link1.obj"/>
+    <mesh name="right_arm_link1_collision" content_type="model/obj" file="collision/right_arm_link1.obj"/>
+    <mesh name="right_arm_link2_visual" content_type="model/obj" file="visual/right_arm_link2.obj"/>
+    <mesh name="right_arm_link2_collision" content_type="model/obj" file="collision/right_arm_link2.obj"/>
+    <mesh name="right_arm_link3_visual" content_type="model/obj" file="visual/right_arm_link3.obj"/>
+    <mesh name="right_arm_link3_collision" content_type="model/obj" file="collision/right_arm_link3.obj"/>
+    <mesh name="right_arm_link4_visual" content_type="model/obj" file="visual/right_arm_link4.obj"/>
+    <mesh name="right_arm_link4_collision" content_type="model/obj" file="collision/right_arm_link4.obj"/>
+    <mesh name="right_arm_link5_visual" content_type="model/obj" file="visual/right_arm_link5.obj"/>
+    <mesh name="right_arm_link5_collision" content_type="model/obj" file="collision/right_arm_link5.obj"/>
+    <mesh name="right_arm_link6_visual" content_type="model/obj" file="visual/right_arm_link6.obj"/>
+    <mesh name="right_arm_link6_collision" content_type="model/obj" file="collision/right_arm_link6.obj"/>
+    <mesh name="right_arm_link7_visual" content_type="model/obj" file="visual/right_arm_link7.obj"/>
+    <mesh name="right_arm_link7_collision" content_type="model/obj" file="collision/right_arm_link7.obj"/>
+  </asset>
+
+  <worldbody>
+    <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.0980392 0.0980392 0.0980392 1" mesh="agv_link_visual"/>
+    <geom type="mesh" contype="0" conaffinity="0" group="3" rgba="0.0980392 0.0980392 0.0980392 1" mesh="agv_link_collision"/>
+    <body name="lumber_link1" pos="0 0 0.3">
+      <inertial pos="0.00983738 -0.000128533 -0.323891" quat="0.700849 0.000418663 0.000382659 0.71331" mass="10.4316" diaginertia="0.200295 0.198489 0.0312335"/>
+      <joint name="lumber_joint1" type="slide" pos="0 0 0.3" axis="0 0 1" range="-0.3 0" damping="2000" armature="10"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.933333 1" mesh="lumber_link1_visual"/>
+      <geom type="mesh" group="3" rgba="0.792157 0.819608 0.933333 1" mesh="lumber_link1_collision"/>
+      <body name="lumber_link2">
+        <inertial pos="7.44595e-06 -0.0257979 0.159033" quat="0.703239 -0.0826626 0.0810772 0.701461" mass="2.54041" diaginertia="0.00949153 0.0090394 0.00800917"/>
+        <joint name="lumber_joint2" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="1"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="lumber_link2_visual"/>
+        <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="lumber_link2_collision"/>
+        <body name="lumber_link3" pos="0 0 0.167" quat="0.707105 0.707108 0 0">
+          <inertial pos="-0.000318384 0.188857 0.0014263" quat="0.636217 0.34704 -0.651343 0.224818" mass="4.04276" diaginertia="0.0165529 0.0161444 0.0158967"/>
+          <joint name="lumber_joint3" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.5"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="lumber_link3_visual"/>
+          <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="lumber_link3_collision"/>
+          <body name="head_link1" quat="0.707105 -0.707108 0 0">
+            <inertial pos="2.0927e-05 0.010763 0.415384" quat="0.704428 0.0355863 -0.036884 0.707923" mass="0.357779" diaginertia="0.000549385 0.000496422 0.000361331"/>
+            <joint name="head_joint1" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.2"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="head_link1_visual"/>
+            <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="head_link1_collision"/>
+            <body name="head_link2" pos="0 0 0.424" quat="0.707105 -0.707108 0 0">
+              <inertial pos="0.00552662 -0.0354342 0.000313959" quat="0.996871 0.000395769 0.000476594 -0.0790452" mass="2.05937" diaginertia="0.00682083 0.00649414 0.00455464"/>
+              <joint name="head_joint2" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.2"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.588235 0.666667 0.682353 1" mesh="head_link2_visual"/>
+              <geom type="mesh" group="3" rgba="0.588235 0.666667 0.682353 1" mesh="head_link2_collision"/>
+            </body>
+          </body>
+          <body name="left_arm_link1" pos="0 0.241 0" quat="-2.59734e-06 0.707105 0.707108 -2.59735e-06">
+            <inertial pos="-7.1233e-05 -0.0166293 0.201165" quat="0.704734 -0.03767 0.0254214 0.708014" mass="0.853083" diaginertia="0.00182406 0.00144434 0.00120712"/>
+            <joint name="left_arm_joint1" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.5"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link1_visual"/>
+            <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link1_collision"/>
+            <body name="left_arm_link2" pos="0 0 0.2055" quat="0.707105 0.707108 0 0">
+              <inertial pos="-0.0815387 0.00108996 -0.000679633" quat="-0.0287094 0.675451 0.0310974 0.736189" mass="0.702359" diaginertia="0.0012524 0.00100144 0.000922207"/>
+              <joint name="left_arm_joint2" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.3"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link2_visual"/>
+              <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link2_collision"/>
+              <body name="left_arm_link3" quat="0.499998 -0.5 -0.500002 0.5">
+                <inertial pos="-0.010114 0.000322615 0.224238" quat="0.998499 -0.00709269 0.0539058 0.00665008" mass="0.739495" diaginertia="0.00182061 0.00164288 0.0010821"/>
+                <joint name="left_arm_joint3" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.2"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link3_visual"/>
+                <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link3_collision"/>
+                <body name="left_arm_link4" pos="0 0 0.25" quat="0.707107 0 -0.707107 0">
+                  <inertial pos="0.0764832 0.000203069 0.00012076" quat="0.0165342 0.758214 -0.0127445 0.651671" mass="0.461749" diaginertia="0.000634684 0.000533795 0.000485599"/>
+                  <joint name="left_arm_joint4" pos="0 0 0" axis="0 0 -1" range="-3.14 3.14" damping="200" armature="0.1"/>
+                  <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="1 1 1 1" mesh="left_arm_link4_visual"/>
+                  <geom type="mesh" group="3" rgba="1 1 1 1" mesh="left_arm_link4_collision"/>
+                  <body name="left_arm_link5" quat="0.499998 0.5 0.500002 0.5">
+                    <inertial pos="-0.00380009 -4.17053e-05 0.193264" quat="0.999108 0.00348588 0.0419308 -0.00362033" mass="0.429517" diaginertia="0.000746072 0.000660338 0.000449029"/>
+                    <joint name="left_arm_joint5" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.1"/>
+                    <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link5_visual"/>
+                    <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link5_collision"/>
+                    <body name="left_arm_link6" pos="0 0 0.215" quat="0.499998 -0.5 -0.500002 0.5">
+                      <inertial pos="-0.00318988 -0.0879699 0.00104864" quat="0.769202 0.6119 -0.0960322 0.157111" mass="0.485409" diaginertia="0.000912549 0.00087323 0.00038583"/>
+                      <joint name="left_arm_joint6" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.05"/>
+                      <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link6_visual"/>
+                      <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="left_arm_link6_collision"/>
+                      <body name="left_arm_link7" pos="0 -0.12 0" quat="0.499998 0.5 -0.500002 -0.5">
+                        <inertial pos="0.103729 2.39644e-05 0.00031068" quat="0.53408 0.534323 -0.459407 0.467122" mass="0.634135" diaginertia="0.000522993 0.000510594 0.000459553"/>
+                        <joint name="left_arm_joint7" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.02"/>
+                        <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.690196 0.690196 0.690196 1" mesh="left_arm_link7_visual"/>
+                        <geom type="mesh" group="3" rgba="0.690196 0.690196 0.690196 1" mesh="left_arm_link7_collision"/>
+                        <site name="left_tcp" pos="0.2048 0 0" size="0.005" rgba="1 0 0 1" type="sphere"/>
+                        <geom name="left_tcp_x" type="cylinder" size="0.003 0.04" pos="0.2448 0 0" euler="0 1.5708 0" rgba="1 0 0 1" contype="0" conaffinity="0" group="0"/>
+                        <geom name="left_tcp_y" type="cylinder" size="0.003 0.04" pos="0.2048 0.04 0" euler="1.5708 0 0" rgba="0 1 0 1" contype="0" conaffinity="0" group="0"/>
+                        <geom name="left_tcp_z" type="cylinder" size="0.003 0.04" pos="0.2048 0 0.04" rgba="0 0 1 1" contype="0" conaffinity="0" group="0"/>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+          <body name="right_arm_link1" pos="0 0.241 0" quat="0.707105 0 0 0.707108">
+            <inertial pos="-4.72574e-05 0.0166292 0.201165" quat="0.707399 0.0246968 -0.0383966 0.705339" mass="0.853083" diaginertia="0.00182407 0.00144434 0.00120711"/>
+            <joint name="right_arm_joint1" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="200" armature="0.5"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link1_visual"/>
+            <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link1_collision"/>
+            <body name="right_arm_link2" pos="0 0 0.2055" quat="0.707105 -0.707108 0 0">
+              <inertial pos="-0.0813775 -0.00111259 -0.000689387" quat="0.0186387 0.675453 -0.0183562 0.736938" mass="0.701812" diaginertia="0.00125234 0.00100107 0.000922371"/>
+              <joint name="right_arm_joint2" pos="0 0 0" axis="0 0 -1" range="-3.14 3.14" damping="200" armature="0.3"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link2_visual"/>
+              <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link2_collision"/>
+              <body name="right_arm_link3" quat="0.499998 -0.5 -0.500002 0.5">
+                <inertial pos="-0.0117878 0.00028278 0.222776" quat="0.998431 -0.00759094 0.054974 0.00752457" mass="0.70617" diaginertia="0.00177422 0.00162212 0.0010535"/>
+                <joint name="right_arm_joint3" pos="0 0 0" axis="0 0 -1" range="-3.14 3.14" damping="200" armature="0.2"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link3_visual"/>
+                <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link3_collision"/>
+                <body name="right_arm_link4" pos="0 0 0.25" quat="0.707107 0 -0.707107 0">
+                  <inertial pos="0.0714135 -0.000137555 -0.00162256" quat="0.0104033 0.750189 -0.0105333 0.661057" mass="0.495074" diaginertia="0.000680264 0.000562534 0.00050704"/>
+                  <joint name="right_arm_joint4" pos="0 0 0" axis="0 0 -1" range="-3.14 3.14" damping="200" armature="0.1"/>
+                  <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="1 1 1 1" mesh="right_arm_link4_visual"/>
+                  <geom type="mesh" group="3" rgba="1 1 1 1" mesh="right_arm_link4_collision"/>
+                  <body name="right_arm_link5" quat="0.499998 0.5 0.500002 0.5">
+                    <inertial pos="-0.00380009 -4.17053e-05 0.193264" quat="0.999108 0.00348588 0.0419308 -0.00362033" mass="0.429517" diaginertia="0.000746072 0.000660338 0.000449029"/>
+                    <joint name="right_arm_joint5" pos="0 0 0" axis="0 0 -1" range="-3.14 3.14" damping="200" armature="0.1"/>
+                    <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link5_visual"/>
+                    <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link5_collision"/>
+                    <body name="right_arm_link6" pos="0 0 0.215" quat="0.499998 -0.5 -0.500002 0.5">
+                      <inertial pos="-0.00318988 -0.0879699 0.00104864" quat="0.769202 0.6119 -0.0960318 0.157111" mass="0.485409" diaginertia="0.000912549 0.00087323 0.00038583"/>
+                      <joint name="right_arm_joint6" pos="0 0 0" axis="0 0 -1" range="-3.14 3.14" damping="200" armature="0.05"/>
+                      <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link6_visual"/>
+                      <geom type="mesh" group="3" rgba="0.792157 0.819608 0.929412 1" mesh="right_arm_link6_collision"/>
+                      <body name="right_arm_link7" pos="0 -0.12 0" quat="0.499998 0.5 -0.500002 -0.5">
+                        <inertial pos="0.103729 2.39643e-05 0.00031068" quat="0.53408 0.534323 -0.459407 0.467122" mass="0.634135" diaginertia="0.000522993 0.000510594 0.000459553"/>
+                        <joint name="right_arm_joint7" pos="0 0 0" axis="0 0 -1" range="-3.14 3.14" damping="200" armature="0.02"/>
+                        <geom type="mesh" contype="0" conaffinity="0" group="0" density="0" rgba="0.686275 0.686275 0.686275 1" mesh="right_arm_link7_visual"/>
+                        <geom type="mesh" group="3" rgba="0.686275 0.686275 0.686275 1" mesh="right_arm_link7_collision"/>
+                        <site name="right_tcp" pos="0.2048 0 0" size="0.005" rgba="1 0 0 1" type="sphere"/>
+                        <geom name="right_tcp_x" type="cylinder" size="0.003 0.04" pos="0.2448 0 0" euler="0 1.5708 0" rgba="1 0 0 1" contype="0" conaffinity="0" group="0"/>
+                        <geom name="right_tcp_y" type="cylinder" size="0.003 0.04" pos="0.2048 0.04 0" euler="1.5708 0 0" rgba="0 1 0 1" contype="0" conaffinity="0" group="0"/>
+                        <geom name="right_tcp_z" type="cylinder" size="0.003 0.04" pos="0.2048 0 0.04" rgba="0 0 1 1" contype="0" conaffinity="0" group="0"/>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <!-- 升降 -->
+    <position name="lumber_joint1_motor" joint="lumber_joint1" ctrllimited="true" ctrlrange="-0.3 0" kp="50000"/>
+    <!-- 腰部旋转 -->
+    <position name="lumber_joint2_motor" joint="lumber_joint2" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="lumber_joint3_motor" joint="lumber_joint3" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <!-- 头部 -->
+    <position name="head_joint1_motor" joint="head_joint1" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="head_joint2_motor" joint="head_joint2" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <!-- 左臂 -->
+    <position name="left_arm_joint1_motor" joint="left_arm_joint1" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="left_arm_joint2_motor" joint="left_arm_joint2" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="left_arm_joint3_motor" joint="left_arm_joint3" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="left_arm_joint4_motor" joint="left_arm_joint4" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="left_arm_joint5_motor" joint="left_arm_joint5" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="left_arm_joint6_motor" joint="left_arm_joint6" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="left_arm_joint7_motor" joint="left_arm_joint7" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <!-- 右臂 -->
+    <position name="right_arm_joint1_motor" joint="right_arm_joint1" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="right_arm_joint2_motor" joint="right_arm_joint2" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="right_arm_joint3_motor" joint="right_arm_joint3" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="right_arm_joint4_motor" joint="right_arm_joint4" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="right_arm_joint5_motor" joint="right_arm_joint5" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="right_arm_joint6_motor" joint="right_arm_joint6" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+    <position name="right_arm_joint7_motor" joint="right_arm_joint7" ctrllimited="true" ctrlrange="-3.14 3.14" kp="8000"/>
+  </actuator>
+</mujoco>
